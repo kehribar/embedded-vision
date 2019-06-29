@@ -1,0 +1,3 @@
+[submodule "driver/PS3Eye_Experiments"]
+	path = driver/PS3Eye_Experiments
+	url = https://github.com/kehribar/PS3Eye_Experiments
