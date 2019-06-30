@@ -61,6 +61,7 @@ int main(int argc, char const *argv[])
 
   // Create memory linked opencv frame object
   Mat cvFrame(Size(640, 480), CV_8UC3, (void*)cam.frame);
+  std::vector<uint8_t> compimg;
 
   // ...
   s_catch_signals();
@@ -85,10 +86,16 @@ int main(int argc, char const *argv[])
       rectangle(cvFrame, pt1, pt2, color);
     }
 
-    // Transmit the raw camera frame over network
+    // ...
+    vector<int> compression_params;
+    compression_params.push_back(CV_IMWRITE_JPEG_QUALITY);
+    compression_params.push_back(32);
+    imencode(".jpg", cvFrame, compimg, compression_params);
+
+    // Transmit the compressed camera frame over network
     zmq_send(
-      inpFrame_sock_raw, cam.frame, 
-      cam.frameSize, ZMQ_DONTWAIT
+      inpFrame_sock_raw, compimg.data(), 
+      compimg.size(), ZMQ_DONTWAIT
     );
 
     // Exit handling

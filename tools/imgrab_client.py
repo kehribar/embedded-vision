@@ -11,9 +11,9 @@ import numpy as np
 from packetUtils import *
 
 # ...
-WIDTH = int(sys.argv[1])
-HEIGHT = int(sys.argv[2])
-if(sys.argv[3] == 'gray'):
+WIDTH = int(sys.argv[2])
+HEIGHT = int(sys.argv[3])
+if(sys.argv[4] == 'gray'):
   DEPTH = 8
 else:
   DEPTH = 24
@@ -24,7 +24,7 @@ context = zmq.Context()
 
 #  Socket to talk to server
 imsock = context.socket(zmq.SUB)
-imsock.connect("tcp://localhost:8002")
+imsock.connect("tcp://%s:8002" % sys.argv[1])
 imsock.setsockopt(zmq.SUBSCRIBE, b"")
 
 # Socket to send command
@@ -80,12 +80,14 @@ while True:
 
   # Image visualisation
   dat = imsock.recv()
-  if(sys.argv[3] == 'gray'):
+  dat_np = np.frombuffer(dat, np.uint8)
+  img = cv2.imdecode(dat_np, cv2.IMREAD_COLOR)
+  if(sys.argv[4] == 'gray'):
     dat_np = np.frombuffer(dat, np.uint8).reshape(HEIGHT, WIDTH).T
     cv2.cvtColor(dat_np, cv2.COLOR_GRAY2BGR, dst=imgff)
     pygame.surfarray.blit_array(camera_surface, imgff)
   else:
-    dat_np = np.frombuffer(dat, np.uint8).reshape(HEIGHT, WIDTH, 3).transpose(1,0,2)
+    dat_np = np.frombuffer(img, np.uint8).reshape(HEIGHT, WIDTH, 3).transpose(1,0,2)
     cv2.cvtColor(dat_np, cv2.COLOR_RGB2BGR, dst=imgff)
     pygame.surfarray.blit_array(camera_surface, imgff)
   screen.blit(camera_surface, (0, 0))
