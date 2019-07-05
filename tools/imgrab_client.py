@@ -28,8 +28,8 @@ imsock.connect("tcp://%s:8002" % sys.argv[1])
 imsock.setsockopt(zmq.SUBSCRIBE, b"")
 
 # Socket to send command
-cmdsock = context.socket(zmq.PUB)
-cmdsock.bind("tcp://127.0.0.1:8003")
+cmdsock = context.socket(zmq.PAIR)
+cmdsock.connect("tcp://%s:8003" % sys.argv[1])
 
 # ...
 pygame.init()

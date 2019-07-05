@@ -28,7 +28,7 @@ static int s_interrupted = 0;
 static bool rect_valid = false;
 
 // ----------------------------------------------------------------------------
-static void fps_calc();
+static float fps_calc();
 static void s_catch_signals(void);
 static void s_signal_handler(int signal_value);
 static void cmd_handler(uint8_t* buff, int32_t bufflen);
@@ -55,7 +55,7 @@ int main(int argc, char const *argv[])
 
   // ...
   uint8_t cmd_buff[256];
-  zsock_t* cmd_sock = zsock_new_sub("tcp://127.0.0.1:8003", "");
+  zsock_t* cmd_sock = zsock_new_pair("@tcp://*:8003");
   void* cmd_sock_raw = zsock_resolve(cmd_sock);
   printf("Listening commands from port %d ...\n", 8003);
 
@@ -86,6 +86,13 @@ int main(int argc, char const *argv[])
       rectangle(cvFrame, pt1, pt2, color);
     }
 
+    // Overlay some text
+    Point pt_text(5,20);
+    char status_text[32];
+    Scalar color_text(255,255,255);
+    snprintf(status_text, sizeof(status_text), "FPS: %4.1f", fps_calc());
+    putText(cvFrame, status_text, pt_text, FONT_HERSHEY_PLAIN, 1.0, color_text);
+
     // ...
     vector<int> compression_params;
     compression_params.push_back(CV_IMWRITE_JPEG_QUALITY);
@@ -105,9 +112,6 @@ int main(int argc, char const *argv[])
       printf("Interrupt received. Exiting.\n");
       break;
     }
-
-    // ...
-    fps_calc();
   }
 
   // ...
@@ -116,20 +120,15 @@ int main(int argc, char const *argv[])
 }
 
 // ----------------------------------------------------------------------------
-static void fps_calc()
+static float fps_calc()
 {
   static int32_t frame_counter = 0;  
   static auto start = chrono::system_clock::now();
   frame_counter += 1;
   auto end = chrono::system_clock::now();
   auto elapsed = chrono::duration_cast<chrono::milliseconds>(end - start);
-  float fps_calculated =(float)frame_counter /(elapsed.count() / 1000.0);
-  static int32_t m_cnt = 0;
-  if(m_cnt++ == 240)
-  {
-    m_cnt = 0;
-    printf("FPS: %.2f\n", fps_calculated);
-  }
+  float fps_calculated = (float)frame_counter /(elapsed.count() / 1000.0);
+  return fps_calculated;
 }
 
 // ----------------------------------------------------------------------------
