@@ -6,6 +6,7 @@ import sys
 import zmq
 import cv2
 import time
+import json
 import pygame
 import numpy as np
 from packetUtils import *
@@ -39,7 +40,6 @@ camera_surface = pygame.surface.Surface((WIDTH,HEIGHT), 0, DEPTH).convert()
 
 # ...
 prev = time.time()
-cmdbuf = np.zeros(256, np.uint8)
 while True:
 
   # Event handling and command transition
@@ -48,35 +48,39 @@ while True:
     if event.type == pygame.MOUSEBUTTONDOWN:
       pos = pygame.mouse.get_pos()
       btn = pygame.mouse.get_pressed()
-      cmdbuf[0] = 0
-      cmdbuf[1] = 1
-      cmdbuf[2] = btn[0]
-      cmdbuf[3] = btn[1]
-      cmdbuf[4] = btn[2]
-      cmdbuf[5:7] = put16b(pos[0])
-      cmdbuf[7:9] = put16b(pos[1])
-      cmdsock.send(cmdbuf[0:9])
+      cmd = {}
+      cmd['type'] = 'mouse'
+      cmd['isClicked'] = True
+      cmd['x_pos'] = pos[0]
+      cmd['y_pos'] = pos[1]
+      cmd['left_click'] = btn[0]
+      cmd['mid_click'] = btn[1]
+      cmd['right_click'] = btn[2]
+      cmdsock.send_string(json.dumps(cmd))
     elif event.type == pygame.MOUSEBUTTONUP:
       pos = pygame.mouse.get_pos()
       btn = pygame.mouse.get_pressed()
-      cmdbuf[0] = 0
-      cmdbuf[1] = 0
-      cmdbuf[2] = btn[0]
-      cmdbuf[3] = btn[1]
-      cmdbuf[4] = btn[2]
-      cmdbuf[5:7] = put16b(pos[0])
-      cmdbuf[7:9] = put16b(pos[1])
-      cmdsock.send(cmdbuf[0:9])
+      cmd = {}
+      cmd['type'] = 'mouse'
+      cmd['isClicked'] = False
+      cmd['x_pos'] = pos[0]
+      cmd['y_pos'] = pos[1]
+      cmd['left_click'] = btn[0]
+      cmd['mid_click'] = btn[1]
+      cmd['right_click'] = btn[2]
+      cmdsock.send_string(json.dumps(cmd))
     elif event.type == pygame.KEYDOWN:
-      cmdbuf[0] = 1
-      cmdbuf[1] = 1
-      cmdbuf[2] = event.key
-      cmdsock.send(cmdbuf[0:3])
+      cmd = {}
+      cmd['type'] = 'key'
+      cmd['isDown'] = True
+      cmd['key'] = event.key
+      cmdsock.send_string(json.dumps(cmd))
     elif event.type == pygame.KEYUP:
-      cmdbuf[0] = 1
-      cmdbuf[1] = 0
-      cmdbuf[2] = event.key
-      cmdsock.send(cmdbuf[0:3])
+      cmd = {}
+      cmd['type'] = 'key'
+      cmd['isDown'] = False
+      cmd['key'] = event.key
+      cmdsock.send_string(json.dumps(cmd))
 
   # Image visualisation
   dat = imsock.recv()

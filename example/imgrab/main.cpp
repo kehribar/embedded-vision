@@ -10,6 +10,7 @@
 #include <czmq.h>
 #include <zsock.h>
 #include "packet_utils.h"
+#include "json.hpp"
 
 // ----------------------------------------------------------------------------
 #include <opencv2/highgui/highgui.hpp>
@@ -17,6 +18,7 @@
 
 // ----------------------------------------------------------------------------
 using namespace cv;
+using json = nlohmann::json;
 
 // ----------------------------------------------------------------------------
 static ps3cam cam;
@@ -30,8 +32,8 @@ static bool rect_valid = false;
 // ----------------------------------------------------------------------------
 static float fps_calc();
 static void s_catch_signals(void);
+static void cmd_handler(json& cmd);
 static void s_signal_handler(int signal_value);
-static void cmd_handler(uint8_t* buff, int32_t bufflen);
 
 // ----------------------------------------------------------------------------
 int main(int argc, char const *argv[])
@@ -93,7 +95,16 @@ int main(int argc, char const *argv[])
     int32_t cmdlen = zmq_recv(cmd_sock_raw, &cmd_buff, 256, ZMQ_DONTWAIT);
     if(cmdlen > 0)
     {
-      cmd_handler(cmd_buff, cmdlen);
+      cmd_buff[cmdlen] = 0;
+      try
+      {
+        json cmd_json = json::parse(cmd_buff);
+        cmd_handler(cmd_json);
+      }
+      catch(int e)
+      {
+        printf("JSON parse problem! Err %d\n", e); 
+      }
     }
 
     // Grab a frame from camera
@@ -171,20 +182,20 @@ static void s_catch_signals(void)
 }
 
 // ----------------------------------------------------------------------------
-static void cmd_handler(uint8_t* buff, int32_t bufflen)
+static void cmd_handler(json& cmd)
 {
-  switch(buff[0])
+  try
   {
-    // ------------------------------------------------------------------------
+    // ----------------------------------------------------------------------
     // Mouse click event
-    case 0:
+    if(cmd["type"] == "mouse")
     {
-      uint8_t isMouseDownEvent = buff[1];
-      uint8_t isLeftButton = buff[2];
-      uint8_t isMiddleButton = buff[3];
-      uint8_t isRightButton = buff[4];
-      int16_t mouseX = (int16_t)make16b(buff, 5);
-      int16_t mouseY = (int16_t)make16b(buff, 7);
+      uint8_t isMouseDownEvent = cmd["isClicked"];
+      uint8_t isLeftButton = cmd["left_click"];
+      uint8_t isMiddleButton = cmd["mid_click"];
+      uint8_t isRightButton = cmd["right_click"];
+      int16_t mouseX = cmd["x_pos"];
+      int16_t mouseY = cmd["y_pos"];
 
       // ...
       static uint8_t draw_ongoing = false;
@@ -215,24 +226,20 @@ static void cmd_handler(uint8_t* buff, int32_t bufflen)
       printf("mouseDown: %d: left: %d middle: %d right: %d\n", 
         isMouseDownEvent, isLeftButton, isMiddleButton, isRightButton
       );
-      break;
     }
-    // ------------------------------------------------------------------------
+    // ----------------------------------------------------------------------
     // Keyboard event
-    case 1:
+    else if(cmd["type"] == "key")
     {
-      uint8_t isKeyPressedEvent = buff[1];
-      uint8_t key = buff[2];
+      uint8_t isKeyPressedEvent = cmd["isDown"];
+      uint8_t key = cmd["key"];
 
       // ...
       printf("keyDown: %d key: %d\n", isKeyPressedEvent, key);
-      break;
     }
-    // ------------------------------------------------------------------------
-    default:
-    {
-      printf("[cmd_handler]: Unknown command?\n");
-      break;
-    }
+  }
+  catch(int e)
+  {
+    printf("Command parse issue\n");
   }
 }
