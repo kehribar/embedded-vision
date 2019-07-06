@@ -77,7 +77,7 @@ int main(int argc, char const *argv[])
   printf("Streaming from port %d ...\n", 8002);
 
   // ...
-  uint8_t cmd_buff[256];
+  uint8_t cmd_buff[1024];
   zsock_t* cmd_sock = zsock_new_pair("@tcp://*:8003");
   void* cmd_sock_raw = zsock_resolve(cmd_sock);
   printf("Listening commands from port %d ...\n\n", 8003);

@@ -9,7 +9,6 @@ import time
 import json
 import pygame
 import numpy as np
-from packetUtils import *
 
 # ...
 WIDTH = int(sys.argv[2])
