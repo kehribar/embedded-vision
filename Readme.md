@@ -27,7 +27,7 @@ I tested this example on a Raspberry Pi 4 and with its onboard Wi-Fi capability,
 
 * Uses [zeromq](http://zeromq.org/) for command passing and video transmition network interface.
 * Live video data is JPEG compressed to reduce data bandwith requirement.
-    - Please be aware that the image processing run on the uncompressed raw video streamm, system compresses the image just to send to host for visualisation.
+    - Please be aware that the image processing run on the uncompressed raw video stream, system compresses the frames just to send to host for visualisation.
 * Command data is serialized with JSON.
 * Uses PS3 Eye camera and includes neccessary drivers. You can use any other camera as well.
 * Uses [https://github.com/nlohmann/json](https://github.com/nlohmann/json) library in the embedded code for JSON decoding.
