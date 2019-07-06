@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <czmq.h>
 #include <zsock.h>
-#include "packet_utils.h"
 #include "json.hpp"
 
 // ----------------------------------------------------------------------------
