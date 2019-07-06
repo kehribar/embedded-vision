@@ -36,7 +36,28 @@ static void cmd_handler(uint8_t* buff, int32_t bufflen);
 // ----------------------------------------------------------------------------
 int main(int argc, char const *argv[])
 {
-  if(cam.open(0, 640, 480, 60, true) == -1)
+  if(argc < 5)
+  {
+    printf("\n");
+    printf("Missing Arguments!\r\n");
+    printf("\n");
+    printf("Usage Example\n");
+    printf("  %s WIDTH HEIGHT FPS JPEG_COMPRESSION\r\n",argv[0]);
+    return -1;
+  }
+
+  // ...
+  int32_t width = atoi(argv[1]);
+  int32_t height = atoi(argv[2]);
+  int32_t fps = atoi(argv[3]);
+  int32_t jpeg_compression = atoi(argv[4]);
+  printf("\n");
+  printf("Parameters\n");
+  printf("  Width: %d Height: %d FPS: %d JPG Compression: %d\n", 
+    width, height, fps, jpeg_compression
+  );
+
+  if(cam.open(0, width, height, fps, true) == -1)
   {
     return -1;
   }
@@ -51,16 +72,17 @@ int main(int argc, char const *argv[])
   // ...
   zsock_t* inpFrame_sock = zsock_new_pub("@tcp://*:8002");
   void* inpFrame_sock_raw = zsock_resolve(inpFrame_sock);
+  printf("\n");
   printf("Streaming from port %d ...\n", 8002);
 
   // ...
   uint8_t cmd_buff[256];
   zsock_t* cmd_sock = zsock_new_pair("@tcp://*:8003");
   void* cmd_sock_raw = zsock_resolve(cmd_sock);
-  printf("Listening commands from port %d ...\n", 8003);
+  printf("Listening commands from port %d ...\n\n", 8003);
 
   // Create memory linked opencv frame object
-  Mat cvFrame(Size(640, 480), CV_8UC3, (void*)cam.frame);
+  Mat cvFrame(Size(width, height), CV_8UC3, (void*)cam.frame);
   std::vector<uint8_t> compimg;
 
   // ...
@@ -96,7 +118,7 @@ int main(int argc, char const *argv[])
     // ...
     vector<int> compression_params;
     compression_params.push_back(CV_IMWRITE_JPEG_QUALITY);
-    compression_params.push_back(32);
+    compression_params.push_back(jpeg_compression);
     imencode(".jpg", cvFrame, compimg, compression_params);
 
     // Transmit the compressed camera frame over network
