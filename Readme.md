@@ -4,13 +4,17 @@
 
 I couldn't find an easy way to develop real time image processing code on an embedded linux device (Raspberry Pi etc.) without connecting a mouse, keyboard and monitor. Most people develop and monitor their code on the embedded system just for the ease of the onboard desktop environment but this is not a way to go for me. 
 
-This opinionated example allows you to develop the code on your host computer, compile and run at the embedded device and finally analyse and interact with the operation visually on our host computer.
+This opinionated example allows you to develop the code on your host computer, compile and run at the embedded device and finally analyse and interact with the operation visually on your host computer.
 
 I tested this example on a Raspberry Pi 4 and with its onboard Wi-Fi capability, you can create a totally wireless image processing system that you can develop, debug, visualise and interact with remotely.
 
 ## Test Setup
 
 ![Test Setup](./doc/setup.jpg)
+
+## Test Video
+
+[https://vimeo.com/346560699](https://vimeo.com/346560699)
 
 ## Steps for imgrab example
 
